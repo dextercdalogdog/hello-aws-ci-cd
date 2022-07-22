@@ -57,33 +57,30 @@ jobs:
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
-        uses: nelonoel/branch-name@v1
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: test-${BRANCH_NAME}
+          ECR_REPOSITORY: test-${{ $BRANCH_NAME }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # Build a docker container and
           # push it to ECR so that it can
           # be deployed to ECS.
-          docker build -t $ECR_REGISTRY/test-${BRANCH_NAME}:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/test-${{ $BRANCH_NAME }}:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
-        uses: nelonoel/branch-name@v1
         with:
-          task-definition: ${BRANCH_NAME}-td
-          container-name: ${BRANCH_NAME}-td
+          task-definition: ${{ $BRANCH_NAME }}-td
+          container-name: ${{ $BRANCH_NAME }}-td
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        uses: nelonoel/branch-name@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${BRANCH_NAME}-service
-          cluster: test-${BRANCH_NAME}-cluster
+          service: ${{ $BRANCH_NAME }}-service
+          cluster: test-${{ $BRANCH_NAME }}-cluster
           wait-for-service-stability: true
