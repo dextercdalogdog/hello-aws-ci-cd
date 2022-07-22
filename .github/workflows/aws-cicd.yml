@@ -42,10 +42,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Get the current branch name
-          shell: bash
-          run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
-          id: branch
+        shell: bash
+        run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
+        id: branch
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
