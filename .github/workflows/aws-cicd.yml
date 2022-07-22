@@ -42,6 +42,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        steps:
+
+      - name: Prints the current branch name
+        run: echo "${GITHUB_REF#refs/heads/}"
 
       - name: Get the current branch name
         shell: bash
