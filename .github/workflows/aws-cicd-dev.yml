@@ -28,7 +28,7 @@ name: Deploy to Amazon ECS
 
 on:
   pull_request:
-    branches: [main, dev, qa]
+    branches: [dev]
 
 permissions:
   contents: read
@@ -42,14 +42,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Prints the current branch name
-        run: echo "${GITHUB_REF#refs/heads/}"
-
-      - name: Get the current branch name
-        shell: bash
-        run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
-        id: branch
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -67,13 +59,13 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: test-${{ steps.branch.outputs.branch }}
+          ECR_REPOSITORY: test-dev
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # Build a docker container and
           # push it to ECR so that it can
           # be deployed to ECS.
-          docker build -t $ECR_REGISTRY/test-${{ steps.branch.outputs.branch }}:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/test-dev:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
@@ -81,14 +73,14 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ${{ steps.branch.outputs.branch }}-td
-          container-name: ${{ steps.branch.outputs.branch }}-td
+          task-definition: dev-td
+          container-name: dev-td
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ steps.branch.outputs.branch }}-service
-          cluster: test-${{ steps.branch.outputs.branch }}-cluster
+          service: dev-service
+          cluster: test-dev-cluster
           wait-for-service-stability: true
