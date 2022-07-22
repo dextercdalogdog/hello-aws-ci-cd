@@ -74,7 +74,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: dev-td:1
+          task-definition: ./dev-td.json
           container-name: dev-td
           image: ${{ steps.build-image.outputs.image }}
 
