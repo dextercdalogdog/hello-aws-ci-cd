@@ -69,13 +69,16 @@ jobs:
           docker tag $ECR_REPOSITORY:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-1.amazonaws.com/$ECR_REPOSITORY:${IMAGE_TAG}
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-1.amazonaws.com/$ECR_REPOSITORY:${IMAGE_TAG}
           echo "::set-output name=image::${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-1.amazonaws.com/$ECR_REPOSITORY:${IMAGE_TAG}"
-
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition dev-td --query taskDefinition > task-definition.json
+      
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: qa-td
-          container-name: qa-td
+          task-definition: ./task-definition.json
+          container-name: test-qa
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
